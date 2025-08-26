@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Player Window</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { StrictMode } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import VideoPlayerApp from './src/VideoPlayerApp.tsx';
+
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error('Root element not found');
+      }
+
+      createRoot(rootElement).render(
+        StrictMode.createElement(VideoPlayerApp)
+      );
+    </script>
+  </body>
+</html>
