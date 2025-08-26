@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Auction Video Player
 
 A desktop application that monitors live auction websites and automatically plays corresponding videos based on lot numbers.
@@ -97,3 +98,7 @@ npm run build-linux
 ## Support
 
 For technical support or feature requests, please refer to the application settings panel for configuration guidance.
+=======
+# Auction-Video-Player
+Desktop app for playing auction lot videos automatically
+>>>>>>> 57ae2b997478e3df883cfaf8d34a1084fe4eab8f
