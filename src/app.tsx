@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Play, Square, Monitor, FolderOpen, Image, AlertCircle, ExternalLink, X } from 'lucide-react';
+import { Settings, Play, Square, Monitor, FolderOpen, Image, AlertCircle, ExternalLink, X, Info } from 'lucide-react';
 import VideoPlayer from './components/VideoPlayer';
 import SettingsPanel from './components/SettingsPanel';
 import StatusBar from './components/StatusBar';
@@ -41,6 +41,7 @@ function App() {
   const [videoWindowOpen, setVideoWindowOpen] = useState(false);
   const [monitoringStatus, setMonitoringStatus] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -334,6 +335,9 @@ function App() {
     }
   };
 
+  const showAbout = () => {
+    setShowAboutModal(true);
+  };
 
   if (showSettings) {
     return (
@@ -355,6 +359,14 @@ function App() {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-orange-400">Auction Video Player</h1>
           <div className="flex gap-2">
+            <button
+              onClick={showAbout}
+              className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Info size={18} />
+              About
+            </button>
+            
             <button
               onClick={() => setShowSettings(true)}
               className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -530,6 +542,54 @@ function App() {
 
         </div>
       </main>
+
+      {/* About Modal */}
+      {showAboutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-orange-400">About Auction Video Player</h2>
+              <button
+                onClick={() => setShowAboutModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4 text-gray-300">
+              <div>
+                <span className="font-semibold text-white">Version:</span> 1.0.9
+              </div>
+              <div>
+                <span className="font-semibold text-white">Description:</span> Desktop application for automatically playing auction lot videos based on live website monitoring.
+              </div>
+              <div>
+                <span className="font-semibold text-white">Features:</span>
+                <ul className="list-disc ml-6 mt-2 space-y-1">
+                  <li>Real-time website monitoring</li>
+                  <li>Automatic video playback</li>
+                  <li>Logo display after videos</li>
+                  <li>Auto-updater system</li>
+                  <li>Popup video window</li>
+                </ul>
+              </div>
+              <div>
+                <span className="font-semibold text-white">Developer:</span> Ironbound Auctions
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowAboutModal(false)}
+                className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status Bar */}
       <StatusBar status={status} />

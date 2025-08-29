@@ -1,6 +1,6 @@
 {
   "name": "auction-video-player",
-  "version": "1.0.1",
+  "version": "1.0.10",
   "description": "Desktop app for playing auction lot videos automatically",
   "author": "Auction Video Player <info@example.com>",
   "main": "electron/main.cjs",
@@ -15,9 +15,9 @@
     "electron-build": "npm run build && electron-builder",
     "dist": "npm run build && electron-builder --publish=never",
     "build-win": "npm run build && electron-builder --win",
-    "build-win-simple": "npm run build && electron-builder --win --config.forceCodeSigning=false",
     "build-mac": "npm run build && electron-builder --mac",
     "build-linux": "npm run build && electron-builder --linux",
+    "publish": "npm run build && electron-builder --publish=always",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -45,10 +45,14 @@
   "build": {
     "appId": "com.ironbound.auction-video-player",
     "productName": "Auction Video Player",
+    "electronVersion": "31.0.2",
+    "compression": "store",
+    "removePackageScripts": true,
     "publish": {
       "provider": "github",
       "owner": "ironboundauctions",
-      "repo": "auction-video-player"
+      "repo": "Auction-Video-Player",
+      "releaseType": "release"
     },
     "directories": {
       "output": "dist-electron"
@@ -56,7 +60,11 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "!node_modules/**/*.md",
+      "!node_modules/**/README*",
+      "!node_modules/**/CHANGELOG*",
+      "!node_modules/**/*.map"
     ],
     "asarUnpack": [
       "node_modules/puppeteer/**/*",
@@ -70,7 +78,9 @@
       "icon": "assets/icon.ico",
       "publisherName": "Ironbound Auctions",
       "certificateFile": null,
-      "certificatePassword": null
+      "certificatePassword": null,
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "asInvoker"
     },
     "mac": {
       "target": "dmg",
@@ -82,7 +92,6 @@
       "target": "AppImage",
       "icon": "assets/icon.png"
     },
-    "compression": "normal",
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

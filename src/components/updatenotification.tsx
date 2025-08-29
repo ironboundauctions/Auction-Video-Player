@@ -5,12 +5,20 @@ const UpdateNotification: React.FC = () => {
   const [updateStatus, setUpdateStatus] = useState<string>('');
   const [showNotification, setShowNotification] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onUpdateStatus((status: string) => {
         console.log('Update status:', status);
         setUpdateStatus(status);
+        
+        // Track updating state
+        if (status.includes('Downloading') || status.includes('Installing')) {
+          setIsUpdating(true);
+        } else if (status.includes('ready') || status.includes('error') || status.includes('up to date')) {
+          setIsUpdating(false);
+        }
         
         // Show notification for important updates
         if (status.includes('available') || status.includes('ready') || status.includes('Downloading')) {
@@ -26,6 +34,11 @@ const UpdateNotification: React.FC = () => {
   }, []);
 
   const handleCheckForUpdates = async () => {
+    if (isUpdating || isChecking) {
+      console.log('Update already in progress, ignoring request');
+      return;
+    }
+    
     if (!window.electronAPI) return;
     
     setIsChecking(true);
@@ -43,12 +56,28 @@ const UpdateNotification: React.FC = () => {
   };
 
   const handleInstallUpdate = async () => {
+    if (isUpdating) {
+      console.log('Update already in progress, ignoring install request');
+      return;
+    }
+    
     if (!window.electronAPI) return;
     
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'The application will restart to install the update. Make sure to save any work first.\n\nContinue with installation?'
+    );
+    
+    if (!confirmed) return;
+    
     try {
+      setIsUpdating(true);
+      setUpdateStatus('Installing update...');
       await window.electronAPI.quitAndInstall();
     } catch (error) {
       console.error('Error installing update:', error);
+      setIsUpdating(false);
+      setUpdateStatus(`Installation failed: ${error.message}`);
     }
   };
 
@@ -76,12 +105,16 @@ const UpdateNotification: React.FC = () => {
     return (
       <button
         onClick={handleCheckForUpdates}
-        disabled={isChecking}
-        className="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+        disabled={isChecking || isUpdating}
+        className={`px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm ${
+          isChecking || isUpdating 
+            ? 'bg-gray-600 cursor-not-allowed' 
+            : 'bg-gray-700 hover:bg-gray-600'
+        }`}
         title="Check for updates"
       >
-        <RefreshCw size={16} className={isChecking ? 'animate-spin' : ''} />
-        {isChecking ? 'Checking...' : 'Updates'}
+        <RefreshCw size={16} className={isChecking || isUpdating ? 'animate-spin' : ''} />
+        {isChecking ? 'Checking...' : isUpdating ? 'Updating...' : 'Updates'}
       </button>
     );
   }
@@ -118,9 +151,14 @@ const UpdateNotification: React.FC = () => {
               {updateStatus.includes('ready') && (
                 <button
                   onClick={handleInstallUpdate}
-                  className="mt-2 bg-white text-gray-900 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100 transition-colors"
+                  disabled={isUpdating}
+                  className={`mt-2 px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                    isUpdating 
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                      : 'bg-white text-gray-900 hover:bg-gray-100'
+                  }`}
                 >
-                  Restart & Install
+                  {isUpdating ? 'Installing...' : 'Install Now'}
                 </button>
               )}
             </div>

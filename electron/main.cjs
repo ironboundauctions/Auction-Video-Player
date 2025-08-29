@@ -2,8 +2,19 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const { spawn } = require('child_process');
-const AppUpdater = require('./updater.cjs');
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+
+// Allow unsigned updates (since we don't have code signing certificate)
+process.env.ELECTRON_UPDATER_ALLOW_UNSIGNED = 'true';
+
+// Try to import auto-updater, but handle if it fails
+let AppUpdater = null;
+try {
+  AppUpdater = require('./updater.cjs');
+  console.log('✅ Auto-updater loaded successfully');
+} catch (error) {
+  console.warn('⚠️ Auto-updater not available:', error.message);
+}
 
 // Try to import puppeteer, but have fallback ready
 let puppeteer = null;
@@ -140,26 +151,18 @@ function createWindow() {
     
     // Initialize auto-updater (only in production)
     if (!isDev) {
-      appUpdater = new AppUpdater(mainWindow);
-      
-      // Check for updates 30 seconds after app starts
-      setTimeout(() => {
-        if (appUpdater) {
-          appUpdater.checkForUpdates();
-        }
-      }, 30000);
-    }
-    
-    // Initialize auto-updater (only in production)
-    if (!isDev) {
-      appUpdater = new AppUpdater(mainWindow);
-      
-      // Check for updates 30 seconds after app starts
-      setTimeout(() => {
-        if (appUpdater) {
-          appUpdater.checkForUpdates();
-        }
-      }, 30000);
+      if (AppUpdater) {
+        appUpdater = new AppUpdater(mainWindow);
+        
+        // Check for updates 30 seconds after app starts
+        setTimeout(() => {
+          if (appUpdater) {
+            appUpdater.checkForUpdates();
+          }
+        }, 30000);
+      } else {
+        console.log('Auto-updater not available in this build');
+      }
     }
   });
 
@@ -453,18 +456,24 @@ ipcMain.handle('notify-video-ended', async () => {
 
 // Auto-updater IPC handlers
 ipcMain.handle('check-for-updates', async () => {
+  console.log('Check for updates requested');
   if (appUpdater) {
+    console.log('Triggering update check...');
     appUpdater.checkForUpdates();
     return { success: true, message: 'Checking for updates...' };
   }
-  return { success: false, message: 'Auto-updater not available in development' };
+  console.log('Auto-updater not available');
+  return { success: false, message: 'Auto-updater not available' };
 });
 
 ipcMain.handle('quit-and-install', async () => {
+  console.log('Quit and install requested from renderer');
   if (appUpdater) {
+    console.log('Calling appUpdater.quitAndInstall()');
     appUpdater.quitAndInstall();
     return { success: true };
   }
+  console.log('No appUpdater available');
   return { success: false, message: 'No update available' };
 });
 
